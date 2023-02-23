@@ -3,18 +3,20 @@ import { model, Schema } from "mongoose";
 const userSchema = new Schema({
   username: {
     type: String,
-    required: true,
     unique: true,
   },
-  password: {
+  nickname: {
     type: String,
     required: true,
-    minLength: 8,
   },
   email: {
     type: String,
-    required: true,
   },
+  password: {
+    type: String,
+    minLength: 8,
+  },
+  avatar: String,
 });
 
 const User = model("User", userSchema, "users");
