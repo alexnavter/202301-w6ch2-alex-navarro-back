@@ -2,8 +2,9 @@ import "../../loadEnvironment.js";
 import { type NextFunction, type Request, type Response } from "express";
 import { CustomError } from "../../CustomError/CustomError.js";
 import User from "../../database/models/User.js";
-import { type UserCredentials } from "../../types";
+import { type UserStructure, type UserCredentials } from "../../types";
 import jwt from "jsonwebtoken";
+import bcryptjs from "bcrypt";
 
 const loginUser = async (
   req: Request<
@@ -37,6 +38,37 @@ const loginUser = async (
   const token = jwt.sign(jwtPayload, process.env.JWT_SECRET!);
 
   res.status(200).json({ token });
+};
+
+export const createUser = async (
+  req: Request<Record<string, unknown>, Record<string, unknown>, UserStructure>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const avatar = req.file?.originalname;
+    const { username, nickname, email, password } = req.body;
+
+    const hashedPassword = await bcryptjs.hash(password, 10);
+
+    const user = await User.create({
+      username,
+      nickname,
+      email,
+      password: hashedPassword,
+      avatar,
+    });
+
+    res.status(201).json({ user });
+  } catch (error) {
+    const customError = new CustomError(
+      (error as Error).message,
+      500,
+      "Couldn't create the user"
+    );
+
+    next(customError);
+  }
 };
 
 export default loginUser;
